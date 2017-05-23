@@ -20,12 +20,17 @@ SRL can be seen as either a classification or sequence labeling problem. The ear
 
 In order to minimize the number of hand-crafted features, Collobert et al. (2014) utilize deep learning for solving NLP tasks including Part-of-Speech Tagging, Chunking, and SRL with classification approach. The research aims to prove that one does not need any task-specific feature in order to achieve state-of-the-art performance. The word embedding is used as the main feature across tasks, combined with Convolutional Neural Networks (CNN) architecture to train the model. They achieve promising results for the POS Tagging and Chunking, while for SRL they still need to use features from the parsers to achieve competitive results.
 
-Different from the previous works, Zhou et al. see SRL as a sequence labeling problem in which the arguments are labeled sequentially instead of independently. They proposed an end-to-end learning of SRL using Deep Bi-Directional Long Short-Term Memories (DB-LSTM), with word embedding as the main feature. Their analysis suggests that the DB-LSTM model implicitly extracts the syntactic information over the sentences and thus, syntactic parser is not needed. The research result outperforms the previous state-of-the-art traditional SLR systems as it achieves F1 score of 81,07\%. The research also shows that the performance of the sequence labeling approach using DB-LSTM is better than the classification approach using CNN
+Different from the previous works, Zhou et al. view SRL as a sequence labeling problem in which the arguments are labeled sequentially instead of independently. They proposed an end-to-end learning of SRL using Deep Bi-Directional Long Short-Term Memories (DB-LSTM), with word embedding as the main feature. Their analysis suggests that the DB-LSTM model implicitly extracts the syntactic information over the sentences and thus, syntactic parser is not needed. The research result outperforms the previous state-of-the-art traditional SLR systems as it achieves F1 score of 81,07\%. The research also shows that the performance of the sequence labeling approach using DB-LSTM is better than the classification approach using CNN
 
 While many of the previous works studied SRL on formal language, our research aims to explore SRL on conversational language, which is still under-resourced. We thus introduce a new set of semantic roles for this language type. Furthermore, we propose a new architecture named Context-Aware Bi-LSTM, designed with attention mechanism in order to capture context information of the sentence at a higher level.
 
 \section{Methodology}
-In this chapter, we explain our research methodology including the data annotation, feature extraction, and proposed model architecture.
+In this work, we view the SRL as a sequence labeling problem. Suppose that we have an input of \textit{N} words $w = (w_{1}, w_{2}, ..., w_{n})$, the goal is to find the best sequence of labels $y = (y_{1}, y_{2}, ..., y_{n})$, with $y_{i}$ representing the semantic roles. The probabilities
+\begin{equation}
+P(y_{i}|w_{i-l}, ..., w_{i+l},y_{i-l}, ..., y_{i+l})
+\end{equation}
+
+whereby \textit{l} is a small number. In this chapter, we explain our research methodology including the data annotation, features used, and the proposed model architecture. 
 
 \subsection{Data Annotation}
 Since there seems to be no resource available for labeled conversational language data, we annotated our own dataset of Indonesian text chats from Kata.ai’s bots. The data was annotated by three linguists. In this work, we create a new set of semantic roles mainly crafted for informal conversational language. The semantic roles proposed are explained in Table~\ref{tab:semantic_roles}.
@@ -48,12 +53,9 @@ Since there seems to be no resource available for labeled conversational languag
 	\end{tabular}
 \end{table}
 
-The main difference of this set of semantic roles compared to the previous ones is "GREET". In conversational language, we often call the name of person we are talking to. This information is useful, for instance, we can derive that "you" refers to "Andy" in "Hi Andy! I brought you a present".
+These semantic roles are inspired by X. The main difference of this set of semantic roles compared to the previous ones is \texttt{GREET}. In conversational language, we often call the name of person we are talking to. This information is useful, for instance, we can derive that "you" refers to "Andy" in "Hi Andy! I brought you a present".
 
 It is worth to note that conversational language has unique characteristics. First, they use slangs and abbreviations. For example, one might use \textit{"u"} instead of \textit{"you"} in \textit{"I brought u a present"}. The grammars are often unstructured and thus, one cannot rely on syntactic parsers to build SRL system for conversational language. The sentences are also filled with interjections such as "haha" and "lol". Lastly, since conversational sentences are really short, averaging around 4-6 words per sentence, it sometimes contains incomplete information. These are the interesting challenges the SRL system should learn and tackle.
-
-\subsection{Task Definition}
-We use sequence labeling dan definisi umum di mana bagian elemen dari (Agen, Pasien. d;;) We use sequence labeling dan definisi umum di mana bagian elemen dari (Agen, Pasien. d;;) We use sequence labeling dan definisi umum di mana bagian elemen dari (Agen, Pasien. d;;) We use sequence labeling dan definisi umum di mana bagian elemen dari (Agen, Pasien. d;;) We use sequence labeling dan definisi umum di mana bagian elemen dari (Agen, Pasien. d;;) We use sequence labeling dan definisi umum di mana bagian elemen dari (Agen, Pasien. d;;) We use sequence labeling dan definisi umum di mana bagian elemen dari (Agen, Pasien. d;;) We use sequence labeling dan definisi umum di mana bagian elemen dari (Agen, Pasien. d;;)
 
 \subsection{Features}
 We utilized word embedding and POS tag as our main features with neighbouring words as the secondary feature. While most of the SRL research used predicate information as one of the main features, we omit to use it since we seek for an SRL system which finds the predicate from scratch alongside with other semantic roles.
@@ -64,16 +66,22 @@ We use the gold-standard POS tag on our data as the second feature. Even though 
 
 As an additional feature, we also experiment with neighbouring words features with context window of 3. Suppose that we are in t timestep, the neighbouring words are the word embeddings of timestep t-1 and t+1. This feature can be useful for capturing the context of the word by looking at the words around it.
 
-\subsection{Context-Aware BI-LSTM}
-Recurrent Neural Networks (RNN) has a nature advantage for solving sequence labeling problem (Zhou et al., 2015), which is suitable for the SRL task. Zhou et al. used the so-called deep bi-directional long short-term memories, as part of RNN family, for their SRL system. However, the semantic role of an argument is highly dependent on the context of the sentence. Zhou et al. used predicate as the context information to help determine the semantic role of each argument. In our work, we did not use the predicate as our feature since we also want the machine to predict it.
+\subsection{Context-Aware B-LSTM}
+Recurrent Neural Networks (RNN) has a nature advantage for solving sequence labeling problem (Zhou et al., 2015). In this work, we propose a new RNN architecture named Context-Aware Bi-Directional Long Short-Term Memory Networks (CAB-LSTM). The rationale is to add a dense yet useful information containing a sentence context to every time step in order to help the machine decide semantic roles better. With this in mind, we design an attention mechanism on top of the recurrent networks layers, as illustrated in Figure~\ref{fig:cabilstm} 
 
-We thus propose a new RNN architecture named Context-Aware Bi-Directional Long Short-Term Memories Networks (CABI-LSTM). The rationale is to add a dense yet useful information containing a sentence context to every time step in order to help the machine decide the semantic roles better. With this in mind, we build attention mechanism on top of the recurrent networks layers, as illustrated in Figure X. The attention mechanism firstly collects the context information by multiplying trainable weights with all the vectors from every time step of the last LSTM output. We sum all the weighted vectors and feed it into tanh layer. The output of the tanh layer is then transformed into distributed weights with a sum of 1 by a softmax layer. The original output vectors of the last LSTM output are multiplied by these distributed weights respectively. We then sum all the multiplication results as the final context information. All LSTM outputs are concatenated with this context information before going to the last softmax layer to predict the semantic roles.
+The attention mechanism firstly collects the context information by multiplying trainable weights with all the vectors from every time step of the last LSTM output. We sum each element for each weighted vectors to reduce the dimension. The results are then fed into a hidden softmax layer which outputs distributed weights with a total of 1. The original output vectors of the last LSTM output are multiplied by these distributed weights respectively. We then sum all the multiplication results as the final context information. The original LSTM outputs are concatenated with this context information before going to the last softmax layer to predict the semantic roles.
 
 The formula of this attention mechanism is described as follows.
 (W21, W22, …, W2t) = softmax(tanh(W1. V1 + W2. V2 + … + Wt Vt))
 Z = W21. V1 + W22. V2 + … + W2t. Vt
 
 With V1, V2, …, Vt as the last LSTM output vectors, W1, W2, Wt as the trainable weights, W21, W22, W2t as the final weight of every time step. The context information is denoted as Z. Z is concatenated with all the vectors V1, V2, .., Vt as the additional information to predict the semantic roles in the last softmax output layer.
+
+\begin{figure}
+	\includegraphics[width=3in]{cabilstm}
+	\caption{An architecture of Context-Aware Bi-Directional Long Short Term Memories.}
+	\label{fig:cabilstm}
+\end{figure}
 
 \section{Experiments}
 In this chapter, we focus on presenting our experiment results and the analysis accordingly. There are two set of scenarios. The first scenario set aims to find the best combination of features. This scenario consists of four combinations as follows:
@@ -126,8 +134,8 @@ The best recall is on the weight 128with 73.52\%. It increases by 2.2\%.
 		\midrule
 		BI-LSTM				&	74.24\%				&	71.26\%				&	72.29\%	\\
 		CABI-LSTM-64		&	73.37\%				&	73.25\%				&	73.05\%	\\
-		CABI-LSTM-128		&	76.25\%				&	\textbf{73.52\%}	&	74.05\%	\\
-		CABI-LSTM-256		&	\textbf{77.33\%}	&	73.10\%				&	\textbf{74.78\%}\\
+		CABI-LSTM-128		&	76.25\%				&	73.52\%				&	74.05\%	\\
+		CABI-LSTM-256		&	\textbf{77.03\%}	&	\textbf{73.55\%}	&	\textbf{74.78\%}\\
 		\bottomrule
 	\end{tabular}
 \end{table}
