@@ -69,13 +69,31 @@ As an additional feature, we also experiment with neighbouring words features wi
 \subsection{Context-Aware B-LSTM}
 Recurrent Neural Networks (RNN) has a nature advantage for solving sequence labeling problem (Zhou et al., 2015). In this work, we propose a new RNN architecture named Context-Aware Bi-Directional Long Short-Term Memory Networks (CAB-LSTM). The rationale is to add a dense yet useful information containing a sentence context to every time step in order to help the machine decide semantic roles better. With this in mind, we design an attention mechanism on top of the recurrent networks layers, as illustrated in Figure~\ref{fig:cabilstm} 
 
-The attention mechanism firstly collects the context information by multiplying trainable weights with all the vectors from every time step of the last LSTM output. We sum each element for each weighted vectors to reduce the dimension. The results are then fed into a hidden softmax layer which outputs distributed weights with a total of 1. The original output vectors of the last LSTM output are multiplied by these distributed weights respectively. We then sum all the multiplication results as the final context information. The original LSTM outputs are concatenated with this context information before going to the last softmax layer to predict the semantic roles.
+The attention mechanism firstly collects the context information by multiplying trainable weights with all the vectors from every time step of the last LSTM output. We sum each element for each weighted vectors to reduce the dimension. The results are then fed into a hidden softmax layer which outputs weights with a total of 1. The original output vectors of the last LSTM output are multiplied by these distributed weights respectively. We then sum all the multiplication results as the final context information. The original LSTM outputs are concatenated with this context information before going to the last softmax layer to predict the semantic roles. 
 
 The formula of this attention mechanism is described as follows.
-(W21, W22, …, W2t) = softmax(tanh(W1. V1 + W2. V2 + … + Wt Vt))
-Z = W21. V1 + W22. V2 + … + W2t. Vt
-
-With V1, V2, …, Vt as the last LSTM output vectors, W1, W2, Wt as the trainable weights, W21, W22, W2t as the final weight of every time step. The context information is denoted as Z. Z is concatenated with all the vectors V1, V2, .., Vt as the additional information to predict the semantic roles in the last softmax output layer.
+\begin{equation}
+c_{i} = CNN(a_{i})
+\end{equation}
+\begin{equation}
+h_{i} = BLSTM(c_{i})
+\end{equation}
+\begin{equation}
+f(h) = Sum(W.h)
+\end{equation}
+\begin{equation}
+[\alpha_{1}, \alpha_{2}, ..., \alpha_{n}] = Softmax([f(h_{1}), f(h_{2}), ..., f(h_{n})])
+\end{equation}
+\begin{equation}
+r_{i} = \alpha_{i}.h_{i}
+\end{equation}
+\begin{equation}
+z = r_{1} + r_{2} + ... + r_{n}
+\end{equation}
+\begin{equation}
+j_{i} = Concatenate(h_{i}, z)
+\end{equation}
+With $a_{i}$, $c_{i}$, and $h_{i}$ as the input vectors, the output of CNN layer, and the output of BLSTM layer respectively, with $i$ indicating the time step. $h_{i}$ is then feed into function $f(h)$ in which it is multiplied by the time-distributed matrix W and all the elements in it are summed. Once we have all the values of $[f(h_{1}), f(h_{2}), ..., f(h_{n})]$, we make it as an input for the softmax layer, resulting weights $[\alpha_{1}, \alpha_{2}, ..., \alpha_{n}]$. All the original LSTM outputs $h_{1}, h_{2}, ..., h_{n}$ are multiplied by these weights, with the results of $r_{1}, r_{2}, ..., r_{n}$. We then sum all these vectors by element-wise to have a context vector $z$. This vector $z$ is thus concatenated with all the original LSTM outputs $h_{i}$ as the additional information to predict the semantic roles in the last softmax output layer.
 
 \begin{figure}
 	\includegraphics[width=3in]{cabilstm}
@@ -101,7 +119,7 @@ As for evaluation, we use precision, recall and F1 metrics for all scenarios. Th
 \subsection{Feature Combination Scenario}
 Table~\ref{tab:feature_scenario} shows the scenario results of four feature combinations. The highest result is achieved with combination of WE + POS, followed by WE + WE-N + POS, WE, and WE + WE-N, with F1 scores of 72.29\%, 72.22\%, 62.00\%, and 61.92\% respectively. From these results, we can see the big impact POS Tag contributes for the performance. Using POS Tag enhances the result up to 10.29\%, when we compare WE + POS and WE combinations. The explanation would be the fact that POS Tag contains meaningful information such as Noun and Adjective which describes the word, it thus supports the word embedding feature.
 
-Surprisingly, when we combine the neighboring words of the argument as in WE + WE-N, the result slightly decreases by 0.08\%, compared to only using WE feature. This is also the case when we compare WE + WE-N with WE + WE-N + POS scenarios, which decreases by 0.07\% when we used neighboring words. It tells us that neighbouring words do not improve the performance at all. We suggest that this is because the CNN layer already extracts these information implicitly, by capturing surrounding information and compressed it into one vector. Hence, we do not need an explicit neighboring words as part of our features. 
+Surprisingly, when we combine the neighboring words of the argument as in WE + WE-N, the result slightly decreases by 0.08\%, compared to only using WE feature. This is also the case when we compare WE + WE-N with WE + WE-N + POS scenarios, which decreases by 0.07\% when we used neighboring words. It shows us that neighboring words do not improve the performance at all. We suggest that this is because the CNN layer already extracts these information implicitly, by capturing surrounding information and compressed it into one vector. Hence, we do not need explicit neighboring words as part of our features. 
 
 \begin{table}
 	\caption{Results of Feature Combination Scenario}
